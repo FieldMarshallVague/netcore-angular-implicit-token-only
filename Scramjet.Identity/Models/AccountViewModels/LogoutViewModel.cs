@@ -1,0 +1,7 @@
+﻿namespace Scramjet.Identity.Models
+{
+    public class LogoutViewModel
+    {
+        public string LogoutId { get; set; }
+    }
+}
