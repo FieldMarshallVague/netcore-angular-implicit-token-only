@@ -21,15 +21,18 @@ namespace Scramjet.Identity
             };
         }
 
-        public static IEnumerable<ApiResource> GetApiResources()
+        public static IEnumerable<ApiResource> GetApiResources(IConfigurationSection idsConfig)
         {
+            var dataEventRecordsSecret = idsConfig["DataEventRecordsSecret"];
+            var securedFilesSecret = idsConfig["SecuredFilesSecret"];
+
             return new List<ApiResource>
             {
                 new ApiResource("dataEventRecords")
                 {
                     ApiSecrets =
                     {
-                        new Secret("dataEventRecordsSecret".Sha256())
+                        new Secret(dataEventRecordsSecret.Sha256())
                     },
                     Scopes =
                     {
@@ -45,7 +48,7 @@ namespace Scramjet.Identity
                 {
                     ApiSecrets =
                     {
-                        new Secret("securedFilesSecret".Sha256())
+                        new Secret(securedFilesSecret.Sha256())
                     },
                     Scopes =
                     {
@@ -63,8 +66,8 @@ namespace Scramjet.Identity
         // clients want to access resources (aka scopes)
         public static IEnumerable<Client> GetClients(IConfigurationSection stsConfig)
         {
-            var angularClientIdTokenOnlyUrl = stsConfig["AngularClientIdTokenOnlyUrl"];
-            var angularClientUrl = stsConfig["AngularClientUrl"];
+            var AngularClientIdTokenOnlyUrl = stsConfig["AngularClientIdTokenOnlyUrl"];
+            var AngularClientIdTokenOnlySecureUrl = stsConfig["AngularClientIdTokenOnlySecureUrl"];
             // TODO use configs in app
 
             // client credentials client
@@ -82,18 +85,18 @@ namespace Scramjet.Identity
                     AllowAccessTokensViaBrowser = true,
                     RedirectUris = new List<string>
                     {
-                        "https://localhost:44372",
-                        "https://localhost:44372/silent-renew.html"
+                        AngularClientIdTokenOnlySecureUrl,
+                        AngularClientIdTokenOnlySecureUrl + "/silent-renew.html"
 
                     },
                     PostLogoutRedirectUris = new List<string>
                     {
-                        "https://localhost:44372/Unauthorized"
+                        AngularClientIdTokenOnlySecureUrl + "/Unauthorized"
                     },
                     AllowedCorsOrigins = new List<string>
                     {
-                        "https://localhost:44372",
-                        "http://localhost:44372"
+                        AngularClientIdTokenOnlySecureUrl,
+                        AngularClientIdTokenOnlyUrl
                     },
                     AllowedScopes = new List<string>
                     {

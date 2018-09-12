@@ -1,44 +1,60 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using IdentityServer4.Services;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using IdentityServer4.Services;
-using System.Security.Cryptography.X509Certificates;
-using System.IO;
-using Microsoft.AspNetCore.Identity;
-using System.Globalization;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
-using System.Reflection;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using Scramjet.Identity.Services.Certificate;
-using Scramjet.Identity.Models;
 using Scramjet.Identity.Data;
+using Scramjet.Identity.Models;
 using Scramjet.Identity.Resources;
 using Scramjet.Identity.Services;
-using Microsoft.IdentityModel.Tokens;
+using Scramjet.Identity.Services.Certificate;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Scramjet.Identity
 {
     public class Startup
     {
+        private static string GetKeyVaultEndpoint() => "https://angciety.vault.azure.net";
         private readonly IHostingEnvironment _environment;
 
         public Startup(IHostingEnvironment env)
         {
-            var builder = new ConfigurationBuilder()
+            _environment = env;
+
+            var configBuilder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
-				
-            _environment = env;
 
-            builder.AddEnvironmentVariables();
-            Configuration = builder.Build();
+            // todo: move this to a StartupProduction class (and have an equivalent StartupDevelopment class)
+            if (_environment.IsProduction())
+            {
+                var keyVaultEndpoint = GetKeyVaultEndpoint();
+                if (!string.IsNullOrEmpty(keyVaultEndpoint))
+                {
+                    var azureServiceTokenProvider = new AzureServiceTokenProvider();
+                    var keyVaultClient = new KeyVaultClient(
+                        new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+                    configBuilder.AddAzureKeyVault(keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+                }
+            }
+
+            configBuilder.AddEnvironmentVariables();
+            Configuration = configBuilder.Build();
         }
 
         public IConfigurationRoot Configuration { get; }
@@ -145,7 +161,7 @@ namespace Scramjet.Identity
             services.AddIdentityServer()
                 .AddSigningCredential(cert)
                 .AddInMemoryIdentityResources(Config.GetIdentityResources())
-                .AddInMemoryApiResources(Config.GetApiResources())
+                .AddInMemoryApiResources(Config.GetApiResources(SecretConfig.Instance.GetIdentityServerSettings()))
                 .AddInMemoryClients(Config.GetClients(stsConfig))
                 .AddAspNetIdentity<ApplicationUser>()
                 .AddProfileService<IdentityWithAdditionalClaimsProfileService>();

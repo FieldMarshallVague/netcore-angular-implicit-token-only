@@ -51,12 +51,18 @@ namespace Scramjet.Identity
 
         public IConfigurationSection GetEmailSettings()
         {
-            // create DbOptions object to store the secrets in a statically-typed way
             var emailSettings = new EmailSettings();
-            // bind the config props to the optionss object
             Configuration.GetSection("EmailSettings").Bind(emailSettings);
 
             return Configuration.GetSection("EmailSettings");
+        }
+
+        public IConfigurationSection GetIdentityServerSettings()
+        {
+            var identityServerSettings = new IdentityServerSettings();
+            Configuration.GetSection("IdentityServer").Bind(identityServerSettings);
+
+            return Configuration.GetSection("IdentityServer");
         }
     }
 }
