@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceServer", "ResourceS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scramjet.Identity", "Scramjet.Identity\Scramjet.Identity.csproj", "{E48C9817-DDCE-4A67-8DFD-C6650176E9BC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AngularClient", "AngularClient\AngularClient.csproj", "{AA82B4A2-B17C-4D9D-B4EC-E77306066C50}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{E48C9817-DDCE-4A67-8DFD-C6650176E9BC}.Release|x64.Build.0 = Release|Any CPU
 		{E48C9817-DDCE-4A67-8DFD-C6650176E9BC}.Release|x86.ActiveCfg = Release|Any CPU
 		{E48C9817-DDCE-4A67-8DFD-C6650176E9BC}.Release|x86.Build.0 = Release|Any CPU
+		{AA82B4A2-B17C-4D9D-B4EC-E77306066C50}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA82B4A2-B17C-4D9D-B4EC-E77306066C50}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA82B4A2-B17C-4D9D-B4EC-E77306066C50}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AA82B4A2-B17C-4D9D-B4EC-E77306066C50}.Debug|x64.Build.0 = Debug|Any CPU
+		{AA82B4A2-B17C-4D9D-B4EC-E77306066C50}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AA82B4A2-B17C-4D9D-B4EC-E77306066C50}.Debug|x86.Build.0 = Debug|Any CPU
+		{AA82B4A2-B17C-4D9D-B4EC-E77306066C50}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA82B4A2-B17C-4D9D-B4EC-E77306066C50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA82B4A2-B17C-4D9D-B4EC-E77306066C50}.Release|x64.ActiveCfg = Release|Any CPU
+		{AA82B4A2-B17C-4D9D-B4EC-E77306066C50}.Release|x64.Build.0 = Release|Any CPU
+		{AA82B4A2-B17C-4D9D-B4EC-E77306066C50}.Release|x86.ActiveCfg = Release|Any CPU
+		{AA82B4A2-B17C-4D9D-B4EC-E77306066C50}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

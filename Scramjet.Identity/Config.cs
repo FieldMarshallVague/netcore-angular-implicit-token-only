@@ -28,15 +28,18 @@ namespace Scramjet.Identity
 
             return new List<ApiResource>
             {
-                new ApiResource("dataEventRecords")
+                new ApiResource
                 {
+                    Name = "dataEventRecords",
+                    DisplayName = "Scope for the dataEventRecords ApiResource",
+
                     ApiSecrets =
                     {
                         new Secret(dataEventRecordsSecret.Sha256())
                     },
                     Scopes =
                     {
-                        new Scope
+                        new Scope()
                         {
                             Name = "dataeventrecords",
                             DisplayName = "Scope for the dataEventRecords ApiResource"
@@ -44,15 +47,18 @@ namespace Scramjet.Identity
                     },
                     UserClaims = { "role", "admin", "user", "dataEventRecords", "dataEventRecords.admin", "dataEventRecords.user" }
                 },
-                new ApiResource("securedFiles")
+                new ApiResource
                 {
+                    Name = "securedFiles",
+                    DisplayName = "Scope for the securedFiles ApiResource",
+
                     ApiSecrets =
                     {
                         new Secret(securedFilesSecret.Sha256())
                     },
                     Scopes =
                     {
-                        new Scope
+                        new Scope()
                         {
                             Name = "securedfiles",
                             DisplayName = "Scope for the securedFiles ApiResource"
@@ -66,6 +72,9 @@ namespace Scramjet.Identity
         // clients want to access resources (aka scopes)
         public static IEnumerable<Client> GetClients(IConfigurationSection stsConfig)
         {
+            var AngularClientUrl = stsConfig["AngularClientUrl"];
+            var AngularClientSecureUrl = stsConfig["AngularClientSecureUrl"];
+
             var AngularClientIdTokenOnlyUrl = stsConfig["AngularClientIdTokenOnlyUrl"];
             var AngularClientIdTokenOnlySecureUrl = stsConfig["AngularClientIdTokenOnlySecureUrl"];
             // TODO use configs in app
@@ -73,6 +82,43 @@ namespace Scramjet.Identity
             // client credentials client
             return new List<Client>
             {
+                new Client
+                {
+                    ClientName = "angularclient",
+                    ClientId = "angularclient",
+                    AccessTokenType = AccessTokenType.Reference,
+                    AccessTokenLifetime = 7200,// 120 seconds, default 60 minutes
+                    IdentityTokenLifetime = 7200,
+                    AllowedGrantTypes = GrantTypes.Implicit,
+                    AlwaysIncludeUserClaimsInIdToken = true,
+                    AllowAccessTokensViaBrowser = true,
+                    RedirectUris = new List<string>
+                    {
+                        AngularClientSecureUrl,
+                        AngularClientSecureUrl + "/silent-renew.html"
+
+                    },
+                    PostLogoutRedirectUris = new List<string>
+                    {
+                        AngularClientSecureUrl + "/Unauthorized"
+                    },
+                    AllowedCorsOrigins = new List<string>
+                    {
+                        AngularClientSecureUrl,
+                        AngularClientUrl
+                    },
+                    AllowedScopes = new List<string>
+                    {
+                        "openid",
+                        "dataEventRecords",
+                        "dataeventrecordsscope",
+                        "securedFiles",
+                        "securedfilesscope",
+                        "role",
+                        "profile",
+                        "email"
+                    }
+                },
                 new Client
                 {
                     ClientName = "angularclientidtokenonly",

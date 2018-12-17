@@ -3,7 +3,7 @@
 @model Scramjet.Identity.Models.LoginViewModel
 @inject SignInManager<ApplicationUser> SignInManager
 
-@inject LocService SharedLocalizer
+@inject LocalizerService SharedLocalizer
 
 @{
     ViewData["Title"] = @SharedLocalizer.GetLocalizedHtmlString("login");

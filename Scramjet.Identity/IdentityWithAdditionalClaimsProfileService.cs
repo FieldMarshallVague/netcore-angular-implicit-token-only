@@ -12,6 +12,9 @@ using IdentityServer4;
 
 namespace Scramjet.Identity
 {
+    /// <summary>
+    /// Service for automating assignment of claims and roles to users
+    /// </summary>
     public class IdentityWithAdditionalClaimsProfileService : IProfileService
     {
         private readonly IUserClaimsPrincipalFactory<ApplicationUser> _claimsFactory;
@@ -33,16 +36,8 @@ namespace Scramjet.Identity
             var claims = principal.Claims.ToList();
 
             claims = claims.Where(claim => context.RequestedClaimTypes.Contains(claim.Type)).ToList();
-
-
+            
             claims.Add(new Claim(JwtClaimTypes.GivenName, user.UserName));
-            //new Claim(JwtClaimTypes.Role, "admin"),
-            //new Claim(JwtClaimTypes.Role, "dataEventRecords.admin"),
-            //new Claim(JwtClaimTypes.Role, "dataEventRecords.user"),
-            //new Claim(JwtClaimTypes.Role, "dataEventRecords"),
-            //new Claim(JwtClaimTypes.Role, "securedFiles.user"),
-            //new Claim(JwtClaimTypes.Role, "securedFiles.admin"),
-            //new Claim(JwtClaimTypes.Role, "securedFiles")
 
             if (user.IsAdmin)
             {

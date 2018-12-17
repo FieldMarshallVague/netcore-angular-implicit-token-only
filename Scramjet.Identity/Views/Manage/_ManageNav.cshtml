@@ -1,6 +1,6 @@
 ﻿@using Scramjet.Identity.Views.Manage
 @using Scramjet.Identity.Resources
-@inject LocService SharedLocalizer
+@inject LocalizerService SharedLocalizer
 @inject SignInManager<ApplicationUser> SignInManager
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
