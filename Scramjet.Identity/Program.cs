@@ -38,8 +38,13 @@ namespace Scramjet.Identity
 
                 if (seed)
                 {
+                    Log.Information("Seding DB with IS4 data");
+                    // do IS4 data first
+                    SeedData.EnsureSeedData(Configuration, SecretConfigDevelopment.Instance.GetConnectionString());
+
+                    // then do admin ui data
+                    Log.Information("Seding DB with Admin UI data");
                     await AdminSeedData.EnsureSeedData(host);
-                    SeedData.EnsureSeedData(SecretConfigDevelopment.Instance.GetConnectionString());
 
                     // exit early to allow seed-only run
                     return 1;

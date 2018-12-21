@@ -110,7 +110,7 @@ namespace AspNet5SQLite
               {
                   options.Authority = "https://localhost:44318/";
                   options.ApiName = "dataEventRecords";
-                  options.ApiSecret = "dataEventRecordsSecret";
+                  options.ApiSecret = "dataEventRecordsSecret";  // data event records secret 123 (?)
               });
 
             services.AddAuthorization(options =>

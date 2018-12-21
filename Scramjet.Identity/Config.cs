@@ -16,8 +16,8 @@ namespace Scramjet.Identity
                 new IdentityResources.OpenId(),
                 new IdentityResources.Profile(),
                 new IdentityResources.Email(),
-                new IdentityResource("dataeventrecordsscope",new []{ "role", "admin", "user", "dataEventRecords", "dataEventRecords.admin" , "dataEventRecords.user" } ),
-                new IdentityResource("securedfilesscope",new []{ "role", "admin", "user", "securedFiles", "securedFiles.admin", "securedFiles.user"} )
+                new IdentityResource("dataEventRecordsScope",new []{ "role", "admin", "user", "dataEventRecords", "dataEventRecords.admin" , "dataEventRecords.user" } ),
+                new IdentityResource("securedFilesScope",new []{ "role", "admin", "user", "securedFiles", "securedFiles.admin", "securedFiles.user"} )
             };
         }
 
@@ -36,12 +36,14 @@ namespace Scramjet.Identity
                     ApiSecrets =
                     {
                         new Secret(dataEventRecordsSecret.Sha256())
+                        //new Secret("dataEventRecordsSecret".Sha256())
+                        //dataEventRecordsSecret
                     },
                     Scopes =
                     {
                         new Scope()
                         {
-                            Name = "dataeventrecords",
+                            Name = "dataEventRecords",
                             DisplayName = "Scope for the dataEventRecords ApiResource"
                         }
                     },
@@ -60,7 +62,7 @@ namespace Scramjet.Identity
                     {
                         new Scope()
                         {
-                            Name = "securedfiles",
+                            Name = "securedFiles",
                             DisplayName = "Scope for the securedFiles ApiResource"
                         }
                     },
@@ -111,9 +113,9 @@ namespace Scramjet.Identity
                     {
                         "openid",
                         "dataEventRecords",
-                        "dataeventrecordsscope",
+                        "dataEventRecordsScope",
                         "securedFiles",
-                        "securedfilesscope",
+                        "securedFilesScope",
                         "role",
                         "profile",
                         "email"
@@ -148,9 +150,9 @@ namespace Scramjet.Identity
                     {
                         "openid",
                         "dataEventRecords",
-                        "dataeventrecordsscope",
+                        "dataEventRecordsScope",
                         "securedFiles",
-                        "securedfilesscope",
+                        "securedFilesScope",
                         "role",
                         "profile",
                         "email"

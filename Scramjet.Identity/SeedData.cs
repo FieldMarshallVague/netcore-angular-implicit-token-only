@@ -1,23 +1,49 @@
 ﻿using IdentityModel;
+using IdentityServer4.EntityFramework.DbContexts;
+using IdentityServer4.EntityFramework.Mappers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Scramjet.Identity.Data;
 using Scramjet.Identity.Models;
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Security.Claims;
 
 namespace Scramjet.Identity
 {
     public class SeedData
     {
-        public static void EnsureSeedData(string connectionString)
+        public static void EnsureSeedData(IConfiguration config, string connectionString)
         {
+            IConfigurationSection stsConfig = config.GetSection("StsConfig");
+            var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             var services = new ServiceCollection();
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
+
+            services.AddIdentityServer()
+                // use db for storing config data
+                .AddConfigurationStore(configDb =>
+                {
+                    configDb.ConfigureDbContext = db =>
+                    {
+                        db.EnableSensitiveDataLogging();
+                        db.UseSqlServer(connectionString, sql => sql.MigrationsAssembly(migrationsAssembly));
+                    };
+                })
+                // use db for storing operational data
+                .AddOperationalStore(operationalDb =>
+                {
+                    operationalDb.ConfigureDbContext = db =>
+                    {
+                        db.EnableSensitiveDataLogging();
+                        db.UseSqlServer(connectionString, sql => sql.MigrationsAssembly(migrationsAssembly));
+                    };
+                });
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -97,6 +123,50 @@ namespace Scramjet.Identity
                     {
                         Console.WriteLine("bob already exists");
                     }
+
+                    // CONFIG
+
+                    // create IS4 configuration database from migration if it doesn't exist
+                    var configDbContext = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+                    configDbContext.Database.Migrate();
+
+                    // generate the records for Clients, IdentityResources () and APIs from the static config class.
+                    if (!configDbContext.Clients.Any())
+                    {
+                        foreach (var client in Config.GetClients(stsConfig))
+                        {
+                            configDbContext.Clients.Add(client.ToEntity());
+                        }
+
+                        configDbContext.SaveChanges();
+                    }
+
+
+                    if (!configDbContext.IdentityResources.Any())
+                    {
+                        foreach (var res in Config.GetIdentityResources())
+                        {
+                            configDbContext.IdentityResources.Add(res.ToEntity());
+                        }
+
+                        configDbContext.SaveChanges();
+                    }
+
+                    if (!configDbContext.ApiResources.Any())
+                    {
+                        foreach (var api in Config.GetApiResources(SecretConfigDevelopment.Instance.GetIdentityServerSettings()))
+                        {
+                            configDbContext.ApiResources.Add(api.ToEntity());
+                        }
+
+                        configDbContext.SaveChanges();
+                    }
+
+                    // PERSISTED GRANTS
+
+                    // create persistedGrant database from migration if it doesn't exist
+                    var persistedGrantDbContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
+                    persistedGrantDbContext.Database.Migrate();
                 }
             }
         }

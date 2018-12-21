@@ -4,5 +4,6 @@
     {
         public string DataEventRecordsSecret { get; set; }
         public string SecuredFilesSecret { get; set; }
+        public string CertificatePassword { get; set; }
     }
 }

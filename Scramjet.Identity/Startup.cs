@@ -17,11 +17,15 @@ using Scramjet.Identity.Helpers;
 using Scramjet.Identity.Models;
 using Scramjet.Identity.Resources;
 using Scramjet.Identity.Services;
+using Scramjet.Identity.Services.Certificate;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Scramjet.Identity
 {
@@ -55,36 +59,36 @@ namespace Scramjet.Identity
             var connectionString = SecretConfigDevelopment.Instance.GetConnectionString();
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
 
-            //var useLocalCertStore = Convert.ToBoolean(Configuration["UseLocalCertStore"]);
-            //var certificateThumbprint = Configuration["CertificateThumbprint"];
+            X509Certificate2 cert;
 
-            //X509Certificate2 cert;
+            if (_environment.IsProduction())
+            {
+                var useLocalCertStore = Convert.ToBoolean(Configuration["UseLocalCertStore"]);
+                var certificateThumbprint = Configuration["CertificateThumbprint"];
 
-            //if (_environment.IsProduction() )
-            //{
-            //    if (useLocalCertStore)
-            //    {
-            //        using (X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine))
-            //        {
-            //            store.Open(OpenFlags.ReadOnly);
-            //            var certs = store.Certificates.Find(X509FindType.FindByThumbprint, certificateThumbprint, false);
-            //            cert = certs[0];
-            //            store.Close();
-            //        }
-            //    }
-            //    else
-            //    {
-            //        // Azure deployment, will be used if deployed to Azure
-            //        var vaultConfigSection = Configuration.GetSection("Vault");
-            //        var keyVaultService = new KeyVaultCertificateService(vaultConfigSection["Url"], vaultConfigSection["ClientId"], vaultConfigSection["ClientSecret"]);
-            //        cert = keyVaultService.GetCertificateFromKeyVault(vaultConfigSection["CertificateName"]);
-            //    }
-            //}
-            //else
-            //{
-            //    cert = new X509Certificate2(Path.Combine(_environment.ContentRootPath, "damienbodserver.pfx"), "");
-            //    Log.Warning("Replace the default Cert file (PFX) with custom-created one.");
-            //}
+                if (useLocalCertStore)
+                {
+                    using (X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine))
+                    {
+                        store.Open(OpenFlags.ReadOnly);
+                        var certs = store.Certificates.Find(X509FindType.FindByThumbprint, certificateThumbprint, false);
+                        cert = certs[0];
+                        store.Close();
+                    }
+                }
+                else
+                {
+                    // Azure deployment, will be used if deployed to Azure
+                    var vaultConfigSection = Configuration.GetSection("Vault");
+                    var keyVaultService = new KeyVaultCertificateService(vaultConfigSection["Url"], vaultConfigSection["ClientId"], vaultConfigSection["ClientSecret"]);
+                    cert = keyVaultService.GetCertificateFromKeyVault(vaultConfigSection["CertificateName"]);
+                }
+            }
+            else
+            {
+                var idsConfig = SecretConfigDevelopment.Instance.GetIdentityServerSettings();
+                cert = new X509Certificate2(Path.Combine(_environment.ContentRootPath, "angcietyscramjet.pfx"), idsConfig["CertificatePassword"]);
+            }
 
             services.AddDbContext<ApplicationDbContext>(options =>
             {
@@ -151,9 +155,21 @@ namespace Scramjet.Identity
 
             services.AddTransient<IEmailSender, EmailSender>();
 
+            // CORS
+
+            services.AddCors(options =>
+            {
+                // this defines a CORS policy called "default"
+                options.AddPolicy("default", policy =>
+                {
+                    policy.WithOrigins(new[] { "http://localhost:5003", "https://localhost:44311" })
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
             // IS4
             var builder = services.AddIdentityServer()
-                //.AddSigningCredential(cert) // todo: check if this is what's used for data properties encryption?  e.g. sensitive input from user
                 // use db for storing config data
                 .AddConfigurationStore(configDb =>
                 {
@@ -174,23 +190,27 @@ namespace Scramjet.Identity
                 })
                 .AddAspNetIdentity<ApplicationUser>()
                 .AddProfileService<IdentityWithAdditionalClaimsProfileService>();
-            
-            if (_environment.IsDevelopment())
+
+            if (cert != null)
+            {
+                builder.AddSigningCredential(cert);
+            }
+            else if (_environment.IsDevelopment())
             {
                 builder.AddDeveloperSigningCredential();
             }
-            else
-            {
-                throw new Exception("need to configure key material");
-            }
+
+            
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            InitialiseDatabase(app);
+            //InitialiseDatabase(app);
 
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
+
+            app.UseCors("default");
 
             if (env.IsDevelopment())
             {

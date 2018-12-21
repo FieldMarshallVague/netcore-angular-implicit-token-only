@@ -76,7 +76,10 @@ namespace Scramjet.Identity
                 claims.Add(new Claim(JwtClaimTypes.Scope, "securedFiles"));
             }
 
-            claims.Add(new Claim(IdentityServerConstants.StandardScopes.Email, user.Email));
+            if (user.Email != null)
+            {
+                claims.Add(new Claim(IdentityServerConstants.StandardScopes.Email, user.Email));
+            }
 
 
             context.IssuedClaims = claims;
